@@ -1,0 +1,1 @@
+msbuild /restore WebScraperHLTV.sln /p:Configuration=Release
