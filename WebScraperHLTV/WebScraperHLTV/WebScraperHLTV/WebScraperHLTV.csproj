@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.8.11" />
+    <PackageReference Include="ilmerge" Version="3.0.21" PrivateAssets="All" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <Target Name="ILMerge" AfterTargets="Build" Condition="'$(BuildingInsideVisualStudio)' != 'true' AND '$(Configuration)' == 'Release' ">
+    <ItemGroup>
+      <BuildArtifacts Include="$(OutputPath)\WebScraperHLTV.exe" />
+      <BuildArtifacts Include="$(OutputPath)\*.dll" />
+    </ItemGroup>
+    <Exec Command="$(ILMergeConsolePath) /out:WebScraper.exe @(BuildArtifacts, ' ')  /ndebug" />
+  </Target>
+</Project>
