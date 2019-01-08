@@ -58,7 +58,7 @@ namespace WebScraperHLTV
 
             var buffer = new StringBuilder();
             var myList = scoreboard.Table.ToList();
-            myList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
+            myList.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
 
             foreach (var element in myList)
             {
@@ -116,9 +116,9 @@ namespace WebScraperHLTV
                         var scoreboardLines = File.ReadAllLines(o.Score);
                         scoreboard = Scoreboard.FromLines(scoreboardLines);
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        Console.WriteLine($"Problem parsing {o.Score}");
+                        Console.WriteLine($"Problem parsing {o.Score}, Problem: {e.ToString()}");
 
                     }
                 }

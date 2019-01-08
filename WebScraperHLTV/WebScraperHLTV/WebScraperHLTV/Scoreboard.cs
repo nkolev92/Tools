@@ -12,15 +12,39 @@ namespace WebScraperHLTV
         public static Scoreboard FromLines(string[] lines)
         {
             var Scoreboard = new Scoreboard();
-            
-            if (lines!= null)
+
+            if (lines != null)
             {
-                foreach(var line in lines)
+                foreach (var line in lines)
                 {
-                    if(string.IsNullOrWhiteSpace(line))
+                    if (!string.IsNullOrWhiteSpace(line))
                     {
                         string[] results = line.Split(',');
-                        Scoreboard.Enter(results[0], int.Parse(results[1]));
+                        if (results.Count() == 2)
+                        {
+                            try
+                            {
+                                var user = results[0].Trim();
+                                var currentScore = results[1].Trim();
+
+                                if (!string.IsNullOrEmpty(user) || !string.IsNullOrEmpty(currentScore))
+                                {
+                                    Scoreboard.Enter(user, int.Parse(currentScore));
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"Skipping processing {line} from the scoreboard");
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine($"Problem parsing, line={line}, {e.ToString()}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Skipping processing {line} from the scoreboard");
+                        }
                     }
                 }
             }

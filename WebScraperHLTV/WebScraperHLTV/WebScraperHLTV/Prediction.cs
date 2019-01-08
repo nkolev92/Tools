@@ -24,14 +24,14 @@ namespace WebScraperHLTV
         {
             if (value != null)
             {
-                var list = value.Split(',');
+                var list = value.Trim().Split(',');
 
                 if (list.Length != 3)
                 {
                     return null;
                 }
 
-                return new Prediction(list[0], list[1], list[2]);
+                return new Prediction(list[0].Trim(), list[1].Trim(), list[2].Trim());
             }
             return null;
         }
