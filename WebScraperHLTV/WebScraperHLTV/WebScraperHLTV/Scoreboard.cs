@@ -17,7 +17,7 @@ namespace WebScraperHLTV
             {
                 foreach(var line in lines)
                 {
-                    if(line != null)
+                    if(string.IsNullOrWhiteSpace(line))
                     {
                         string[] results = line.Split(',');
                         Scoreboard.Enter(results[0], int.Parse(results[1]));
