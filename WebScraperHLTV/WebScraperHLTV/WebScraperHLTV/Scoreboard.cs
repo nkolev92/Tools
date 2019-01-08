@@ -28,7 +28,7 @@ namespace WebScraperHLTV
             return Scoreboard;
         }
 
-        public Dictionary<string, int> Table { get; } = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, int> Table { get; } = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
 
         public void Enter(string name, int value)
         {

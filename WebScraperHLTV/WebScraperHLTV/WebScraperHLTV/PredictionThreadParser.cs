@@ -40,7 +40,7 @@ namespace WebScraperHLTV
 
             predictions.ForEach((e) => e.WriteToBuffer(buffer));
 
-            var resultsPath = Path.Combine(Directory.GetCurrentDirectory(), $"votes-{DateTime.Now.ToString("yyyy-MM-dd_HH-mm")}.csv");
+            var resultsPath = Path.Combine(Directory.GetCurrentDirectory(), $"predictions-{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}.csv");
 
             File.WriteAllText(resultsPath, buffer.ToString());
             Console.WriteLine($"Done, result at {resultsPath}");
