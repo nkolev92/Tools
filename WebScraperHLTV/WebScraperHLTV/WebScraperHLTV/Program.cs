@@ -1,81 +1,96 @@
-﻿using HtmlAgilityPack;
+﻿using CommandLine;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace WebScraperHLTV
 {
+
     class Program
     {
         static int Main(string[] args)
         {
-            if (args.Count() != 1)
-            {
-                Console.WriteLine("Please only provide the link to be parsed.");
-                return 1;
-            }
-            var html = args[0];
+            Parser.Default.ParseArguments<Options>(args)
+               .WithParsed<Options>(o =>
+               {
+                   if (o.URL != null)
+                   {
+                       Console.WriteLine($"Going to parse the prediction thread {o.URL}");
+                       PredictionThreadParser.ParsePredicitionThread(o.URL);
+                   }
+                   else if (o.Player != null && o.Predictions != null)
+                   {
+                       Scoreboard scoreboard = null;
+                       var predictions = new List<Prediction>();
 
-            var web = new HtmlWeb();
+                       if (File.Exists(o.Predictions))
+                       {
+                           Console.WriteLine($"Reading {o.Predictions}");
 
-            Console.WriteLine($"Loading {html}");
-            var htmlDoc = web.Load(html);
+                           var lines = File.ReadAllLines(o.Predictions);
 
-            if(htmlDoc == null)
-            {
+                           foreach (var line in lines)
+                           {
+                               var prediction = Prediction.Generate(line);
+                               if (prediction != null) predictions.Add(prediction);
+                           }
 
-            }
-            Console.WriteLine($"Parsing {html}");
-            var nodes = GetPostElements(htmlDoc);
+                           if (o.Score == null)
+                           {
+                               Console.WriteLine("There is no scoreboard file. Generating one.");
+                               scoreboard = new Scoreboard();
+                           }
+                           else
+                           {
+                               if (File.Exists(o.Score))
+                               {
+                                   Console.WriteLine($"Reading {o.Score}");
+                                   var scoreboardLines = File.ReadAllLines(o.Score);
+                                   scoreboard = Scoreboard.FromLines(scoreboardLines);
+                               }
+                               else
+                               {
+                                   Console.WriteLine($"{o.Predictions} does not exist");
+                                   scoreboard = new Scoreboard();
+                               }
+                           }
 
-            var buffer = new StringBuilder();
+                           Console.WriteLine("Adding up scores");
 
-            foreach (var node in nodes)
-            {
-                var username = GetUsername(node);
-                var player = GetSelection(node);
-                var time = GetTime(node);
+                           foreach(var prediction in predictions)
+                           {
+                               // TODO: Check the time.
+                               if (o.Player.Equals(prediction.Selection, StringComparison.OrdinalIgnoreCase))
+                               {
+                                   scoreboard.AddScore(prediction.Username);
+                               }
+                           }
 
-                buffer.Append($"{username},{player},{time},\n");
-            }           
+                           var buffer = new StringBuilder();
 
-            var resultsPath = Path.Combine(Directory.GetCurrentDirectory(), $"votes-{DateTime.Now.ToString("yyyy-MM-dd_HH-mm")}.csv");
+                           var myList = scoreboard.Table.ToList();
+                           myList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
 
-            File.WriteAllText(resultsPath, buffer.ToString());
-            Console.WriteLine($"Done, result at {resultsPath}");
+                           foreach(var element in myList)
+                           {
+                               buffer.Append($"{element.Key},{element.Value}\n");
+                           }
+
+                           var resultsPath = Path.Combine(Directory.GetCurrentDirectory(), $"scoreboard-{DateTime.Now.ToString("yyyy-MM-dd_HH-mm")}.csv");
+
+                           File.WriteAllText(resultsPath, buffer.ToString());
+                           Console.WriteLine($"Done, result at {resultsPath}");
+                       }
+                   }
+                   else
+                   {
+                       Console.WriteLine($"Invalid combination(or lack of) of arguments. If the URL is provided, it will be used. If not, Player, Predictions are all mandatory.");
+                   }
+               });
 
             return 0;
-        }
-
-        private static readonly Regex _classNameRegex = new Regex(@"\bpost\b", RegexOptions.Compiled);
-
-        private static IEnumerable<HtmlNode> GetPostElements(HtmlDocument doc)
-        {
-            return doc.DocumentNode.Descendants().Where(n => n.NodeType == HtmlNodeType.Element)
-                .Where(e => e.Name == "div" && _classNameRegex.IsMatch(e.GetAttributeValue("class", "")));
-        }
-
-        private static string GetUsername(HtmlNode node)
-        {
-            return GetNode(node, "forum-topbar").Descendants().Where(e => e.Name == "a" && e.GetAttributeValue("class", "").Equals("authorAnchor")).FirstOrDefault().InnerText;
-        }
-
-        private static string GetSelection(HtmlNode node)
-        {
-            return node.Descendants().Where(e => e.Name == "div" && e.GetAttributeValue("class", "").Equals("forum-middle")).FirstOrDefault().InnerText;
-        }
-
-        private static string GetTime(HtmlNode node)
-        {
-            return GetNode(node, "time").InnerText;
-        }
-
-        private static HtmlNode GetNode(HtmlNode node, string clazz)
-        {
-            return node.Descendants().Where(e => e.Name == "div" && e.GetAttributeValue("class", "").Equals(clazz)).FirstOrDefault();
         }
     }
 }
