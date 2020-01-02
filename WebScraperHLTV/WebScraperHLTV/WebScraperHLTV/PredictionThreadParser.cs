@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -13,9 +14,11 @@ namespace WebScraperHLTV
     {
         public static void ParsePredicitionThread(Uri uri)
         {
-            var web = new HtmlWeb();
+            WebClient webClient = new WebClient();
+            string htmlString = webClient.DownloadString(uri);
 
-            var htmlDoc = web.Load(uri);
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(htmlString);
 
             if (htmlDoc == null)
             {
